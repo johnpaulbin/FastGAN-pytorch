@@ -104,10 +104,13 @@ def train(args):
 
     netD = Discriminator(ndf=ndf, im_size=im_size)
     netD.apply(weights_init)
-
+    netG = nn.DataParallel(netG)
+    netD = nn.DataParallel(netD)
     netG.to(device)
     netD.to(device)
 
+    
+    
     avg_param_G = copy_G_params(netG)
 
     fixed_noise = torch.FloatTensor(8, nz).normal_(0, 1).to(device)
@@ -117,6 +120,10 @@ def train(args):
         netG.load_state_dict(ckpt['g'])
         netD.load_state_dict(ckpt['d'])
         avg_param_G = ckpt['g_ema']
+        
+        optimizerG = optim.Adam(netG.parameters(), lr=nlr, betas=(nbeta1, 0.999))
+        optimizerD = optim.Adam(netD.parameters(), lr=nlr, betas=(nbeta1, 0.999))
+        
         optimizerG.load_state_dict(ckpt['opt_g'])
         optimizerD.load_state_dict(ckpt['opt_d'])
         current_iteration = int(checkpoint.split('_')[-1].split('.')[0])
@@ -125,9 +132,6 @@ def train(args):
     if multi_gpu:
         netG = nn.DataParallel(netG.to(device))
         netD = nn.DataParallel(netD.to(device))
-
-    optimizerG = optim.Adam(netG.parameters(), lr=nlr, betas=(nbeta1, 0.999))
-    optimizerD = optim.Adam(netD.parameters(), lr=nlr, betas=(nbeta1, 0.999))
     
     for iteration in tqdm(range(current_iteration, total_iterations+1)):
         real_image = next(dataloader)
