@@ -64,7 +64,7 @@ def train(args):
     nlr = 0.0002
     nbeta1 = 0.5
     use_cuda = True
-    multi_gpu = True
+    multi_gpu = False
     dataloader_workers = 8
     current_iteration = 0
     save_interval = 100
@@ -104,8 +104,8 @@ def train(args):
 
     netD = Discriminator(ndf=ndf, im_size=im_size)
     netD.apply(weights_init)
-    netG = nn.DataParallel(netG)
-    netD = nn.DataParallel(netD)
+    #netG = nn.DataParallel(netG)
+    #netD = nn.DataParallel(netD)
     netG.to(device)
     netD.to(device)
 
@@ -121,14 +121,15 @@ def train(args):
         netD.load_state_dict(ckpt['d'])
         avg_param_G = ckpt['g_ema']
         
-        optimizerG = optim.Adam(netG.parameters(), lr=nlr, betas=(nbeta1, 0.999))
-        optimizerD = optim.Adam(netD.parameters(), lr=nlr, betas=(nbeta1, 0.999))
         
         optimizerG.load_state_dict(ckpt['opt_g'])
         optimizerD.load_state_dict(ckpt['opt_d'])
         current_iteration = int(checkpoint.split('_')[-1].split('.')[0])
         del ckpt
         
+    optimizerG = optim.Adam(netG.parameters(), lr=nlr, betas=(nbeta1, 0.999))
+    optimizerD = optim.Adam(netD.parameters(), lr=nlr, betas=(nbeta1, 0.999))
+    
     if multi_gpu:
         netG = nn.DataParallel(netG.to(device))
         netD = nn.DataParallel(netD.to(device))
