@@ -59,7 +59,7 @@ if __name__ == "__main__":
     device = torch.device('cuda:%d'%(args.cuda))
     
     net_ig = Generator( ngf=64, nz=noise_dim, nc=3, im_size=args.im_size)#, big=args.big )
-    net_ig = nn.DataParallel(net_ig)
+    #net_ig = nn.DataParallel(net_ig)
     net_ig.to(device)
     
 
