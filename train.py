@@ -121,15 +121,21 @@ def train(args):
         netD.load_state_dict(ckpt['d'])
         avg_param_G = ckpt['g_ema']
         
+        optimizerG = optim.Adam(netG.parameters(), lr=nlr, betas=(nbeta1, 0.999))
+        optimizerD = optim.Adam(netD.parameters(), lr=nlr, betas=(nbeta1, 0.999))
         
         optimizerG.load_state_dict(ckpt['opt_g'])
         optimizerD.load_state_dict(ckpt['opt_d'])
+        
+        
         current_iteration = int(checkpoint.split('_')[-1].split('.')[0])
         del ckpt
         
-    optimizerG = optim.Adam(netG.parameters(), lr=nlr, betas=(nbeta1, 0.999))
-    optimizerD = optim.Adam(netD.parameters(), lr=nlr, betas=(nbeta1, 0.999))
-    
+    else:
+        
+        optimizerG = optim.Adam(netG.parameters(), lr=nlr, betas=(nbeta1, 0.999))
+        optimizerD = optim.Adam(netD.parameters(), lr=nlr, betas=(nbeta1, 0.999))
+        
     if multi_gpu:
         netG = nn.DataParallel(netG.to(device))
         netD = nn.DataParallel(netD.to(device))
